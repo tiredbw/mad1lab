@@ -123,3 +123,82 @@ print(data.describe())
 # Статистические характеристики для 4-го столбца
 
 print(data.iloc[:,5].describe())
+
+def calculate_statistics(df, group_name=""):
+    """
+    Рассчитывает основные описательные статистики
+    для количественных переменных.
+    """
+
+    def find_mode(series):
+        """Возвращает первую моду признака."""
+        mode_result = series.mode()
+
+        if not mode_result.empty:
+            return mode_result.iloc[0]
+
+        return None
+
+    print("\n" + "-" * 50)
+    print(f"СТАТИСТИЧЕСКИЕ ХАРАКТЕРИСТИКИ: {group_name.upper()}")
+    print("-" * 50)
+
+    # Выбираем только количественные столбцы
+    numeric_columns = df.select_dtypes(include=[np.number]).columns
+
+    for column in numeric_columns:
+        print(f"\n--- {column} ---")
+
+        # Удаляем пропуски только из анализируемого столбца
+        column_data = df[column].dropna()
+
+        print(f"Количество наблюдений: {len(column_data)}")
+        print(f"Минимальное значение: {column_data.min():.2f}")
+        print(f"Максимальное значение: {column_data.max():.2f}")
+        print(f"Среднее значение: {column_data.mean():.2f}")
+        print(f"Стандартное отклонение: {column_data.std():.2f}")
+        print(f"Первый квартиль (Q1): {column_data.quantile(0.25):.2f}")
+        print(f"Медиана (Q2): {column_data.median():.2f}")
+        print(f"Третий квартиль (Q3): {column_data.quantile(0.75):.2f}")
+        print(f"Мода: {find_mode(column_data)}")
+
+        skewness = stats.skew(column_data)
+        kurtosis = stats.kurtosis(column_data)
+
+        print(f"Асимметрия: {skewness:.4f}")
+        print(f"Эксцесс: {kurtosis:.4f}")
+
+        # Интерпретация асимметрии
+        if abs(skewness) < 0.5:
+            skew_text = (
+                "слабая асимметрия, распределение близко к симметричному"
+            )
+        elif abs(skewness) < 1:
+            skew_text = "умеренная асимметрия"
+        else:
+            skew_text = "сильная асимметрия"
+
+        # Интерпретация эксцесса
+        if kurtosis > 0:
+            kurtosis_text = "распределение островершинное"
+        elif kurtosis < 0:
+            kurtosis_text = "распределение плосковершинное"
+        else:
+            kurtosis_text = (
+                "нулевой эксцесс, как у нормального распределения"
+            )
+
+        print(f"Интерпретация: {skew_text}; {kurtosis_text}")
+
+# Рассчитываем статистические характеристики для всей выборки
+calculate_statistics(data, "Вся выборка")
+
+# Рассчитываем статистические характеристики для первой группы
+calculate_statistics(group1, "Группа 1")
+
+# Рассчитываем статистические характеристики для второй группы
+calculate_statistics(group2, "Группа 2")
+
+# Дополнительно: сравнение по полу
+calculate_statistics(gender1, "Мужчины (пол=1)")
+calculate_statistics(gender2, "Женщины (пол=2)")
