@@ -365,3 +365,151 @@ plt.suptitle("Матричный график", y=1.02)
 # y=1.02 - немного поднимает заголовок выше для лучшего визуального размещения
 plt.show()
 
+# Проверка распределения признака "стаж" на соответствие нормальному закону
+
+# Проверяем первую и вторую группы с помощью критериев Шапиро-Уилка и Андерсона-Дарлинга
+
+for group, group_name in [(group1, "Группа 1"), (group2, "Группа 2")]:
+    experience_data = group["стаж"].dropna()
+
+    print(f"\nПРОВЕРКА НОРМАЛЬНОСТИ: {group_name.upper()}")
+
+    # Критерий Шапиро-Уилка
+
+    shapiro_stat, shapiro_p = stats.shapiro(experience_data)
+    print("Критерий Шапиро-Уилка:")
+    print(f"  Статистика = {shapiro_stat:.4f}, p-value = {shapiro_p:.6f}")
+
+    if shapiro_p > 0.05:
+        print("  -> Вывод: Не отвергаем нулевую гипотезу. Данные согласуются с нормальным законом.")
+    else:
+        print("  -> Вывод: Отвергаем нулевую гипотезу. Данные НЕ согласуются с нормальным законом.")
+
+    print("-" * 40)
+
+    # Критерий Андерсона-Дарлинга
+
+    anderson_result = stats.anderson(experience_data, dist="norm")
+    print("Критерий Андерсона-Дарлинга:")
+    print(f"  Статистика = {anderson_result.statistic:.4f}")
+    print("  Критические значения для уровня значимости alpha:")
+
+    for i in range(len(anderson_result.critical_values)):
+        significance_level = anderson_result.significance_level[i]
+        critical_value = anderson_result.critical_values[i]
+
+        if anderson_result.statistic < critical_value:
+            conclusion = "согласуются"
+        else:
+            conclusion = "НЕ согласуются"
+
+        print(
+            f"  {significance_level}%: {critical_value:.3f} | "
+            f"Данные {conclusion} с нормальным законом"
+        )
+
+    print("-" * 40)
+
+# Гистограммы и графики Q-Q для первой и второй групп
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+sns.histplot(group1["стаж"], kde=True, color="green", bins=8, ax=axes[0, 0])
+axes[0, 0].set_title("Группа 1: гистограмма стажа")
+
+stats.probplot(group1["стаж"], plot=axes[0, 1])
+axes[0, 1].set_title("Группа 1: график Q-Q")
+
+sns.histplot(group2["стаж"], kde=True, color="blue", bins=8, ax=axes[1, 0])
+axes[1, 0].set_title("Группа 2: гистограмма стажа")
+
+stats.probplot(group2["стаж"], plot=axes[1, 1])
+axes[1, 1].set_title("Группа 2: график Q-Q")
+
+plt.tight_layout()
+plt.show()
+
+# Корреляционный анализ количественных переменных для первой группы
+
+numeric_data_1 = group1[numeric_columns]
+print(f"\nКоличественные переменные: {list(numeric_data_1.columns)}")
+
+corr_pearson_1 = numeric_data_1.corr(method="pearson")
+corr_spearman_1 = numeric_data_1.corr(method="spearman")
+corr_kendall_1 = numeric_data_1.corr(method="kendall")
+
+print("\nГРУППА 1")
+print("\nМатрица корреляций Пирсона:")
+print(corr_pearson_1.round(3))
+print("\nМатрица корреляций Спирмена:")
+print(corr_spearman_1.round(3))
+print("\nМатрица корреляций Кендалла:")
+print(corr_kendall_1.round(3))
+
+# Корреляционный анализ количественных переменных для второй группы
+
+numeric_data_2 = group2[numeric_columns]
+
+corr_pearson_2 = numeric_data_2.corr(method="pearson")
+corr_spearman_2 = numeric_data_2.corr(method="spearman")
+corr_kendall_2 = numeric_data_2.corr(method="kendall")
+
+print("\nГРУППА 2")
+print("\nМатрица корреляций Пирсона:")
+print(corr_pearson_2.round(3))
+print("\nМатрица корреляций Спирмена:")
+print(corr_spearman_2.round(3))
+print("\nМатрица корреляций Кендалла:")
+print(corr_kendall_2.round(3))
+
+# Тепловые карты коэффициентов корреляции для первой группы
+
+sns.set_theme(style="white", font_scale=1.2)
+
+# Тепловая карта для корреляции Пирсона
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(
+    corr_pearson_1,
+    annot=True,
+    cmap="coolwarm",
+    vmin=-1,
+    vmax=1,
+    fmt=".2f",
+    linewidths=0.5
+)
+plt.title("Тепловая карта: Корреляция Пирсона, группа 1")
+plt.tight_layout()
+plt.show()
+
+# Тепловая карта для корреляции Спирмена
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(
+    corr_spearman_1,
+    annot=True,
+    cmap="coolwarm",
+    vmin=-1,
+    vmax=1,
+    fmt=".2f",
+    linewidths=0.5
+)
+plt.title("Тепловая карта: Корреляция Спирмена, группа 1")
+plt.tight_layout()
+plt.show()
+
+# Тепловая карта для корреляции Кендалла
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(
+    corr_kendall_1,
+    annot=True,
+    cmap="coolwarm",
+    vmin=-1,
+    vmax=1,
+    fmt=".2f",
+    linewidths=0.5
+)
+plt.title("Тепловая карта: Корреляция Кендалла, группа 1")
+plt.tight_layout()
+plt.show()
